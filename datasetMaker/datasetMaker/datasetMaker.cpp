@@ -7,9 +7,10 @@
 #include <math.h>
 #include <conio.h>
 #define FILE_NAME "dataset.txt"
-#define version_num "2.1"
+#define FILE_NAME_LOG "datasetMaker_log.txt"
+#define version_num "2.2"
 
-static int MAX_RANDOM_SIZE = 1000;
+int MAX_RANDOM_SIZE = 1000;
 
 int getGroup(float* W_vec, float* point_vec,int dim) {
 	float sum = W_vec[dim];
@@ -75,7 +76,12 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 		printf("Error opening file!\n");
 		return;
 	}
-
+	FILE* file_ptr_log = fopen(FILE_NAME_LOG, "w");
+	if (file_ptr_log == NULL)
+	{
+		printf("Error opening file!\n");
+		return;
+	}
 	W_vec = (float*)calloc(dim+1, sizeof(float));
 	point_vec = (float*)calloc(dim, sizeof(float));
 	char ans;
@@ -86,6 +92,8 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 		RANDOM_GROUP = 0;
 	else
 		RANDOM_GROUP = 1;
+	printf("\nChoose max absolute value for data (integer): ");
+	scanf("%d", &MAX_RANDOM_SIZE);
 	if (!RANDOM_GROUP)
 	{
 		fflush(stdin);
@@ -104,6 +112,17 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 			printf(" W%d = %f", (i+1),W_vec[i]);
 		}
 		printf(" b = %f)\n", W_vec[dim]);
+	}
+	fprintf(file_ptr_log,"dataset created with datasetMaker version %s by Eden Dupont\n\nMax absolute value : %d\n",version_num,MAX_RANDOM_SIZE);
+	if (RANDOM_GROUP)
+		fprintf(file_ptr_log, "data points assigned with random groups.\n");
+	else
+	{
+		fprintf(file_ptr_log, "data points classified according to target W:\n");
+		for (int i = 0; i <= dim; i++)
+		{
+			fprintf(file_ptr_log, "W[%d] = %f\n", i,W_vec[i]);
+		}
 	}
 	printf("\n\nCreating file...please wait");
 	fprintf(file_ptr, "%d %d %f %f %d %f", data_size, dim, alpha_zero, alpha_max, LIMIT, QC);
@@ -134,7 +153,7 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 			group = getGroup(W_vec, point_vec,dim);
 		fprintf(file_ptr, "%d", group);
 	}
-
+	fclose(file_ptr_log);
 	fclose(file_ptr);
 	free(W_vec);
 	free(point_vec);

@@ -1,0 +1,4 @@
+dataset created with datasetMaker version 2.2 by Eden Dupont
+
+Max absolute value : 500
+data points assigned with random groups.
