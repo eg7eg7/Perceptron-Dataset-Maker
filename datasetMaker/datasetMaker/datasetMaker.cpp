@@ -4,16 +4,22 @@
 #include "stdafx.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 #include <conio.h>
-#define FILE_NAME "dataset.txt"
+#define FILE_NAME "input.txt"
 #define FILE_NAME_LOG "datasetMaker_log.txt"
-#define version_num "2.2"
-
+#define version_num "3.0"
+const int NUM_CIRCLES = 5;
+struct Circle {
+	double *center_vector;
+	double radius;
+	int group;
+}typedef;
 int MAX_RANDOM_SIZE = 1000;
 
-int getGroup(float* W_vec, float* point_vec,int dim) {
-	float sum = W_vec[dim];
+int getGroup(double* W_vec, double* point_vec,int dim) {
+	double sum = W_vec[dim];
 	for (int i = 0; i < dim; i++) {
 		sum += W_vec[i] * point_vec[i];
 	}
@@ -33,17 +39,17 @@ int isInteger(char* string, int* the_num) {
 	*the_num = num;
 	return 1;
 }
-int isFloat(char* string, float* the_num) {
-	float num;
+int isdouble(char* string, double* the_num) {
+	double num;
 
-	num = (float)atof(string);
+	num = (double)atof(string);
 
 	if (num == 0 && string[0] != '0')
 		return 0;
 	*the_num = num;
 	return 1;
 }
-int getArgs(int argc, char *argv[], int* data_size, int* dim, float* alpha_zero, float* alpha_max, int* LIMIT, float* QC) {
+int getArgs(int argc, char *argv[], int* data_size, int* dim, double* alpha_zero, double* alpha_max, int* LIMIT, double* QC) {
 	if (argc != 7)
 		return 1;
 
@@ -53,20 +59,20 @@ int getArgs(int argc, char *argv[], int* data_size, int* dim, float* alpha_zero,
 		return 1;
 	if (!isInteger(argv[5], LIMIT))
 		return 1;
-	if (!isFloat(argv[3], alpha_zero))
+	if (!isdouble(argv[3], alpha_zero))
 		return 1;
-	if (!isFloat(argv[4], alpha_max))
+	if (!isdouble(argv[4], alpha_max))
 		return 1;
-	if (!isFloat(argv[6], QC))
+	if (!isdouble(argv[6], QC))
 		return 1;
 	return 0;
 }
-void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, int LIMIT, float QC)
+void createDataset(int data_size, int dim, double alpha_zero, double alpha_max, int LIMIT, double QC)
 {
 	
 	int RANDOM_GROUP = 1;
-	float* W_vec;
-	float* point_vec;
+	double* W_vec;
+	double* point_vec;
 	printf("dataset will be created with the following info: \n");
 	printf("N = %d | K= %d | alpha_zero = %f | alpha_max = %f | LIMIT = %d | QC =%f | \n", data_size, dim, alpha_zero, alpha_max, LIMIT, QC);
 
@@ -82,29 +88,30 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 		printf("Error opening file!\n");
 		return;
 	}
-	W_vec = (float*)calloc(dim+1, sizeof(float));
-	point_vec = (float*)calloc(dim, sizeof(float));
+	W_vec = (double*)calloc(dim+1, sizeof(double));
+	point_vec = (double*)calloc(dim, sizeof(double));
 	char ans;
-	printf("\nK is %d, do you want to assign random groups? (y/n)   ", dim);
+	printf("\nK is %d, do you want to create random values or create groups?\n\n Press R for random\nPress G for groups)  ", dim);
 	fflush(stdin);
 	scanf(" %c", &ans);
-	if ((ans == 'n' || ans == 'N'))
-		RANDOM_GROUP = 0;
-	else
+	if ((ans == 'r' || ans == 'R'))
 		RANDOM_GROUP = 1;
-	printf("\nChoose max absolute value for data (integer): ");
-	scanf("%d", &MAX_RANDOM_SIZE);
-	if (!RANDOM_GROUP)
-	{
+	else
+		RANDOM_GROUP = 0;
+
 		fflush(stdin);
+		if (RANDOM_GROUP == 1)
+		{
+
 		
+		printf("\nChoose the W vector for the data to be based on.\n");
 		for (int i = 0;i < dim; i++)
 		{
 			printf("\nW%d = ",i+1);
-			scanf("%f", &W_vec[i]);
+			scanf("%lf", &W_vec[i]);
 		}
 		printf("\nW0 (b) = ");
-		scanf("%f", &W_vec[dim]);
+		scanf("%lf", &W_vec[dim]);
 		
 		printf("\nW vector is (");
 		for (int i = 0; i < dim; i++)
@@ -112,46 +119,76 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 			printf(" W%d = %f", (i+1),W_vec[i]);
 		}
 		printf(" b = %f)\n", W_vec[dim]);
-	}
-	fprintf(file_ptr_log,"dataset created with datasetMaker version %s by Eden Dupont\n\nMax absolute value : %d\n",version_num,MAX_RANDOM_SIZE);
-	if (RANDOM_GROUP)
-		fprintf(file_ptr_log, "data points assigned with random groups.\n");
-	else
-	{
-		fprintf(file_ptr_log, "data points classified according to target W:\n");
-		for (int i = 0; i <= dim; i++)
-		{
-			fprintf(file_ptr_log, "W[%d] = %f\n", i,W_vec[i]);
 		}
+	fprintf(file_ptr_log,"dataset created with datasetMaker version %s by Eden Dupont\n\nMax absolute value : %d\n",version_num,MAX_RANDOM_SIZE);
+	if (RANDOM_GROUP == 1)
+		fprintf(file_ptr_log, "data points assigned with random values.\n");
+	else
+		fprintf(file_ptr_log, "data points classified with groups W:\n");
+	for (int i = 0; i <= dim; i++)
+	{
+		fprintf(file_ptr_log, "W[%d] = %f\n", i,W_vec[i]);
 	}
 	printf("\n\nCreating file...please wait");
 	fprintf(file_ptr, "%d %d %f %f %d %f", data_size, dim, alpha_zero, alpha_max, LIMIT, QC);
 	int group = 1;
-	int rand_group;
-	float x;
-	float rand_max_div2 = (float)(RAND_MAX / 2);
-	float division = rand_max_div2 / MAX_RANDOM_SIZE;
+	double x;
+	double rand_max_div2 = (double)(RAND_MAX / 2);
+	double division = rand_max_div2 / MAX_RANDOM_SIZE;
+	if(RANDOM_GROUP == 1)
 	for (int i = 0; i < data_size; i++)
 	{
 		fprintf(file_ptr, "\n");
 		for (int k = 0; k < dim; k++)
 		{
-			x = (float)((rand() - rand_max_div2) / division);
+			x = (double)((rand() - rand_max_div2) / division);
 			point_vec[k] = x;
 			fprintf(file_ptr, "%.2f ", x);
 		}
-
-		if (RANDOM_GROUP)
-		{
-			rand_group = (int)(rand() - rand_max_div2);
-			if (rand_group > 0)
-				group = 1;
-			else
-				group = -1;
-		}
-		else
-			group = getGroup(W_vec, point_vec,dim);
+	group = getGroup(W_vec, point_vec,dim);
 		fprintf(file_ptr, "%d", group);
+	}
+	else
+	{
+		Circle circles[NUM_CIRCLES];
+		for (int i = 0; i < NUM_CIRCLES; i++)
+		{
+			circles[i].center_vector = (double*)malloc(sizeof(double)*dim);
+			circles[i].radius = (i + 1) * 30;
+			circles[i].group = ((i % 2)*2)-1;
+			for (int j = 0; j < dim; j++)
+			{
+				circles[i].center_vector[j] = (double)((rand() - rand_max_div2) / (rand_max_div2 / (MAX_RANDOM_SIZE - 50)));
+				if (circles[i].center_vector[j] < 0)
+					circles[i].center_vector[j] = -circles[i].center_vector[j];
+				if (circles[i].center_vector[j] < circles[i].radius)
+					circles[i].center_vector[j] += circles[i].radius;
+			}
+			
+		}
+		Circle *theCircle;
+		for (int i = 0; i < data_size; i++)
+		{
+			fprintf(file_ptr, "\n");
+			theCircle = &circles[i%NUM_CIRCLES];
+			for (int k = 0; k < dim; k++)
+			{
+				x = theCircle->center_vector[k] + (double)((rand() - rand_max_div2) / (rand_max_div2 / theCircle->radius));
+				point_vec[k] = x;
+				fprintf(file_ptr, "%.2f ", x);
+			}
+			group = theCircle->group;
+			fprintf(file_ptr, "%d", group);
+		}
+
+
+
+
+
+		for (int i = 0; i < NUM_CIRCLES; i++)
+		{
+			free(circles[i].center_vector);
+		}
 	}
 	fclose(file_ptr_log);
 	fclose(file_ptr);
@@ -159,33 +196,34 @@ void createDataset(int data_size, int dim, float alpha_zero, float alpha_max, in
 	free(point_vec);
 	printf("\nEnd. created file \"%s\"\n", FILE_NAME);
 }
-void getSettings(int* data_size, int* dim, float* alpha_zero, float* alpha_max, int* LIMIT, float* QC) {
+void getSettings(int* data_size, int* dim, double* alpha_zero, double* alpha_max, int* LIMIT, double* QC) {
 
-	printf("\n\nSettings input - make sure to define valid types only (integers/floats)\n");
+	printf("\n\nSettings input - make sure to define valid types only (integers/doubles)\n");
 	printf("data size - N (integer): ");
 	scanf("%d", data_size);
 	printf("\ndimension - K (integer): ");
 	scanf("%d", dim);
-	printf("\nalpha_zero (float): ");
-	scanf("%f", alpha_zero);
-	printf("\nalpha_max (float): ");
-	scanf("%f", alpha_max);
+	printf("\nalpha_zero (double): ");
+	scanf("%lf", alpha_zero);
+	printf("\nalpha_max (double): ");
+	scanf("%lf", alpha_max);
 	printf("\nLIMIT (integer): ");
 	scanf("%d", LIMIT);
-	printf("\nQC (float): ");
-	scanf("%f", QC);
+	printf("\nQC (double): ");
+	scanf("%lf", QC);
 
 
 }
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
 	int get_settings = 0;
 	int data_size; //number of points
 	int dim; //number of coordinates of points - dimension
-	float alpha_zero; //initial and increment value of alpha
-	float alpha_max; //max alpha value
+	double alpha_zero; //initial and increment value of alpha
+	double alpha_max; //max alpha value
 	int LIMIT; //the maximum number of iterations
-	float QC; //Quality of Classifier to be reached 
+	double QC; //Quality of Classifier to be reached 
 	printf("Perceptron Classifier dataset maker\n\nmade by Eden Dupont - 2019 version %s\n\n\n", version_num);
 	printf("Settings definitions :\nN - number of points\nK - number of coordinates of points\nalpha_zero - initial value and increment value of alpha\nalpha_max - max alpha value\nLIMIT - the maximum number of iterations\nQC - Quality of Classifier to be reached\n");
 	printf("\nW vector is [W1,W2,W3,W4.....,b (W0] - W1 corresponds to X coefficient, W2 to Y, W3 to Z and etc.\n\n");

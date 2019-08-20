@@ -1,3 +1,5 @@
-﻿  datasetMaker.cpp
-  datasetMaker.vcxproj -> C:\Users\eg7eg\Documents\datasetMaker version 2.1\Perceptron-Dataset-Maker\datasetMaker\Debug\datasetMaker.exe
-  datasetMaker.vcxproj -> C:\Users\eg7eg\Documents\datasetMaker version 2.1\Perceptron-Dataset-Maker\datasetMaker\Debug\datasetMaker.pdb (Full PDB)
+﻿  stdafx.cpp
+  datasetMaker.cpp
+c:\users\cudauser\documents\github\perceptron-dataset-maker\datasetmaker\datasetmaker\datasetmaker.cpp(219): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  datasetMaker.vcxproj -> C:\Users\cudauser\Documents\GitHub\Perceptron-Dataset-Maker\datasetMaker\Debug\datasetMaker.exe
+  datasetMaker.vcxproj -> C:\Users\cudauser\Documents\GitHub\Perceptron-Dataset-Maker\datasetMaker\Debug\datasetMaker.pdb (Full PDB)

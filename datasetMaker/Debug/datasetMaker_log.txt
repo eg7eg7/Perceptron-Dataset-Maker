@@ -1,0 +1,7 @@
+dataset created with datasetMaker version 3.0 by Eden Dupont
+
+Max absolute value : 1000
+data points classified with groups W:
+W[0] = 0.000000
+W[1] = 0.000000
+W[2] = 0.000000
