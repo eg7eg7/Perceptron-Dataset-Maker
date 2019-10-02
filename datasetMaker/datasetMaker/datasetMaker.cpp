@@ -119,8 +119,8 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 	printf("\n\nCreating file...please wait");
 	fprintf(file_ptr, "%d %d %f %f %f %d %f", data_size, dim, dT, Tmax, alpha, LIMIT, QC);
 
-	fprintf(file_ptr_print_zero, "%d %d %f %f %d %f", data_size, dim, dT, Tmax, LIMIT, QC); //missing parameters in order to fit for the jar file - according to the older version of the algorithm
-	fprintf(file_ptr_print_max, "%d %d %f %f %d %f", data_size, dim, dT, Tmax, LIMIT, QC); //same
+	fprintf(file_ptr_print_zero, "%d %d %f %f %d %f", data_size, dim, alpha, Tmax, LIMIT, QC); //missing parameters in order to fit for the jar file - according to the older version of the algorithm
+	fprintf(file_ptr_print_max, "%d %d %f %f %d %f", data_size, dim, alpha, Tmax, LIMIT, QC); //same
 	int group = 1;
 	double x, y;
 	double rand_max_div2 = (double)(RAND_MAX / 2);
