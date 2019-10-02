@@ -1,4 +1,4 @@
-dataset created with datasetMaker version 2.2 by Eden Dupont
+dataset created with datasetMaker version 4.0 by Eden Dupont
 
-Max absolute value : 500
-data points assigned with random groups.
+Max absolute value : 999
+Number of circles : 5
