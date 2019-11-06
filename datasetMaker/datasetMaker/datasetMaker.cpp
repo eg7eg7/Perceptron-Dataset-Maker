@@ -7,11 +7,9 @@
 #include <time.h>
 #include <math.h>
 #include <conio.h>
-#define FILE_NAME_OUTPUT "input.txt"
-#define FILE_NAME_PRINTABLE_ZERO "input_print_zero.txt"
-#define FILE_NAME_PRINTABLE_MAX "input_print_max.txt"
+#define FILE_NAME_OUTPUT "C://output//data.txt"
 
-#define FILE_NAME_LOG "datasetMaker_log.txt"
+#define FILE_NAME_LOG "C://output//datasetMaker_log.txt"
 #define version_num "4.0"
 
 const int NUM_CIRCLES = 5;
@@ -97,18 +95,7 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 		printf("Error opening file!\n");
 		return;
 	}
-	FILE* file_ptr_print_zero = fopen(FILE_NAME_PRINTABLE_ZERO, "w");
-	if (file_ptr_print_zero == NULL)
-	{
-		printf("Error opening file!\n");
-		return;
-	}
-	FILE* file_ptr_print_max = fopen(FILE_NAME_PRINTABLE_MAX, "w");
-	if (file_ptr_print_max == NULL)
-	{
-		printf("Error opening file!\n");
-		return;
-	}
+
 	W_vec = (double*)calloc(dim + 1, sizeof(double));
 
 	fflush(stdin);
@@ -116,14 +103,12 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 	scanf("%d", &num_circles_user);
 	fprintf(file_ptr_log, "dataset created with datasetMaker version %s by Eden Dupont\n\nMax absolute value : %d\nNumber of circles : %d\n", version_num, MAX_RANDOM_SIZE, num_circles_user);
 
-	printf("\n\nCreating file...please wait");
+	printf("\n\nCreating file...please wait\n");
 	fprintf(file_ptr, "%d %d %f %f %f %d %f", data_size, dim, dT, Tmax, alpha, LIMIT, QC);
-
-	fprintf(file_ptr_print_zero, "%d %d %f %f %d %f", data_size, dim, alpha, Tmax, LIMIT, QC); //missing parameters in order to fit for the jar file - according to the older version of the algorithm
-	fprintf(file_ptr_print_max, "%d %d %f %f %d %f", data_size, dim, alpha, Tmax, LIMIT, QC); //same
+	printf("Writing data line\n");
 	int group = 1;
 	double x, y;
-	double rand_max_div2 = (double)(RAND_MAX / 2);
+	double rand_max_div2 = (double)((RAND_MAX) / 2);
 
 	Circle* circles = (Circle*)malloc(num_circles_user * sizeof(Circle));
 	for (int i = 0; i < num_circles_user; i++)
@@ -132,6 +117,7 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 		circles[i].speed = (double*)malloc(sizeof(double)*dim);
 		circles[i].radius = (i + 1) * 30;
 		circles[i].group = ((i % 2) * 2) - 1;
+
 		for (int j = 0; j < dim; j++)
 		{
 			circles[i].center_vector[j] = (double)((rand() - rand_max_div2) / (rand_max_div2 / (MAX_RANDOM_SIZE - 50)));
@@ -147,17 +133,18 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 		}
 
 	}
+	printf("Created Circles\n");
 	Circle *theCircle;
 	double min;
 	double max;
 	double num;
 	double scaled;
+	int index;
 	for (int i = 0; i < data_size; i++)
 	{
 		fprintf(file_ptr, "\n");
-		fprintf(file_ptr_print_zero, "\n");
-		fprintf(file_ptr_print_max, "\n");
-		theCircle = &circles[i%num_circles_user];
+		index = i % num_circles_user;
+		theCircle = &circles[index];
 		if (dim != 2)
 		{
 			for (int k = 0; k < dim; k++)
@@ -168,18 +155,20 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 		}
 		else // dim ==2
 		{
-			x = theCircle->center_vector[0] + (double)((rand() - rand_max_div2) / (rand_max_div2 / theCircle->radius));
+			x = theCircle->center_vector[0] + ((((double) rand())/ RAND_MAX)-0.5)*2*theCircle->radius;
 			num = sqrt((theCircle->radius)*(theCircle->radius) - (x - theCircle->center_vector[0])*(x - theCircle->center_vector[0]));
+			if (isnan(num))
+			{
+				printf("num is nan\n");
+				break;
+			}
 			max = theCircle->center_vector[1] + num;
 			min = theCircle->center_vector[1] - num;
-			scaled = (double)rand() / RAND_MAX;
-			y = (max - min + 1)*scaled + min;
+			scaled = ((double)rand()) / (double) RAND_MAX;
+			y = 2*num*scaled + min;
+			
 			fprintf(file_ptr, "%.2f ", x);
 			fprintf(file_ptr, "%.2f ", y);
-			fprintf(file_ptr_print_zero, "%.2f ", x);
-			fprintf(file_ptr_print_zero, "%.2f ", y);
-			fprintf(file_ptr_print_max, "%.2f ", x + Tmax * theCircle->speed[0]);
-			fprintf(file_ptr_print_max, "%.2f ", y + Tmax * theCircle->speed[1]);
 
 		}
 		for (int k = 0; k < dim; k++)
@@ -188,25 +177,20 @@ void createDataset(int data_size, int dim, double dT, double Tmax, double alpha,
 		}
 		group = theCircle->group;
 		fprintf(file_ptr, "%d", group);
-		fprintf(file_ptr_print_zero, "%d", group);
-		fprintf(file_ptr_print_max, "%d", group);
 	}
+	printf("Finished writing to file.. now free\n");
 
-
-
-
-
-	for (int i = 0; i < NUM_CIRCLES; i++)
+	for (int i = 0; i < num_circles_user; i++)
 	{
+		printf("Free %d\n", i);
 		free(circles[i].center_vector);
 		free(circles[i].speed);
 	}
-
+	printf("Free log\n");
 	fclose(file_ptr_log);
+	printf("Free file\n");
 	fclose(file_ptr);
-	fclose(file_ptr_print_max);
-	fclose(file_ptr_print_zero);
-
+	printf("Free W\n");
 	free(W_vec);
 	printf("\nEnd. created file \"%s\"\n", FILE_NAME_OUTPUT);
 }
@@ -232,7 +216,7 @@ void getSettings(int* data_size, int* dim, double* dT, double* Tmax, double* alp
 }
 int main(int argc, char *argv[])
 {
-	srand(time(NULL));
+	srand(time_t(NULL));
 	int get_settings = 0;
 	int data_size; //number of points
 	int dim; //number of coordinates of points - dimension
